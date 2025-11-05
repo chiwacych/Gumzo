@@ -1,0 +1,57 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Chat Rooms Collection
+    match /chatRooms/{roomId} {
+      // Allow read if user is authenticated and room is public
+      allow read: if request.auth != null && 
+                     (resource == null || resource.data.isPublic == true);
+      
+      // Allow create if user is authenticated
+      allow create: if request.auth != null && 
+                       request.resource.data.createdBy == request.auth.uid &&
+                       request.resource.data.isPublic == true;
+      
+      // Allow update for:
+      // 1. Creator can update everything
+      // 2. Any authenticated user can update lastMessage and lastMessageTime (for sending messages)
+      allow update: if request.auth != null && 
+                       (resource.data.createdBy == request.auth.uid ||
+                        (onlyUpdatingFields(['lastMessage', 'lastMessageTime'])));
+      
+      // Allow delete only if user is the creator
+      allow delete: if request.auth != null && 
+                       resource.data.createdBy == request.auth.uid;
+      
+      // Messages subcollection
+      match /messages/{messageId} {
+        allow read: if request.auth != null;
+        allow create: if request.auth != null && 
+                         request.resource.data.senderId == request.auth.uid;
+        // Allow delete if user is the message sender OR the room owner
+        allow delete: if request.auth != null && 
+                         (resource.data.senderId == request.auth.uid ||
+                          get(/databases/$(database)/documents/chatRooms/$(roomId)).data.createdBy == request.auth.uid);
+      }
+      
+      // Typing status subcollection
+      match /typingStatus/{userId} {
+        allow read: if request.auth != null;
+        allow write: if request.auth != null && userId == request.auth.uid;
+      }
+    }
+    
+    // Users collection (if you have one)
+    match /users/{userId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && request.auth.uid == userId;
+    }
+  }
+}
+
+// Helper function to check if only specific fields are being updated
+function onlyUpdatingFields(allowedFields) {
+  let affectedKeys = request.resource.data.diff(resource.data).affectedKeys();
+  return affectedKeys.hasOnly(allowedFields);
+}

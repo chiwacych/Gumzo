@@ -2,6 +2,7 @@ package com.example.gumzo.data.repository
 
     import com.example.gumzo.data.model.User
     import com.google.firebase.auth.FirebaseAuth
+    import com.google.firebase.auth.UserProfileChangeRequest
     import com.google.firebase.firestore.FirebaseFirestore
     import kotlinx.coroutines.tasks.await
 
@@ -21,6 +22,14 @@ package com.example.gumzo.data.repository
                     displayName = firebaseUser.displayName ?: ""
                 )
 
+                // Sync display name from Firestore to Firebase Auth if needed
+                if (!user.displayName.isNullOrBlank() && firebaseUser.displayName != user.displayName) {
+                    val profileUpdates = UserProfileChangeRequest.Builder()
+                        .setDisplayName(user.displayName)
+                        .build()
+                    firebaseUser.updateProfile(profileUpdates).await()
+                }
+
                 updateUserOnlineStatus(firebaseUser.uid, true)
                 Result.success(user)
             } catch (e: Exception) {
@@ -32,6 +41,12 @@ package com.example.gumzo.data.repository
             return try {
                 val result = auth.createUserWithEmailAndPassword(email, password).await()
                 val firebaseUser = result.user ?: return Result.failure(Exception("Failed to create user"))
+
+                // Update Firebase Auth profile with display name
+                val profileUpdates = UserProfileChangeRequest.Builder()
+                    .setDisplayName(displayName)
+                    .build()
+                firebaseUser.updateProfile(profileUpdates).await()
 
                 val user = User(
                     uid = firebaseUser.uid,

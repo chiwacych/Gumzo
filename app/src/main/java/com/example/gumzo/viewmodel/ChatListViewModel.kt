@@ -10,6 +10,7 @@ package com.example.gumzo.viewmodel
                                     import kotlinx.coroutines.flow.StateFlow
                                     import kotlinx.coroutines.flow.catch
                                     import kotlinx.coroutines.launch
+                                    import kotlinx.coroutines.Job
 
                                     class ChatListViewModel : ViewModel() {
                                         private val repository = ChatRepository()
@@ -24,12 +25,24 @@ package com.example.gumzo.viewmodel
                                         private val _error = MutableStateFlow<String?>(null)
                                         val error: StateFlow<String?> = _error
 
+                                        private var chatRoomsJob: Job? = null
+
                                         init {
-                                            loadChatRooms()
+                                            // Only load if user is authenticated
+                                            if (auth.currentUser != null) {
+                                                loadChatRooms()
+                                            }
                                         }
 
                                         private fun loadChatRooms() {
-                                            viewModelScope.launch {
+                                            // Don't start if user is not authenticated
+                                            if (auth.currentUser == null) {
+                                                _isLoading.value = false
+                                                return
+                                            }
+                                            
+                                            chatRoomsJob?.cancel()
+                                            chatRoomsJob = viewModelScope.launch {
                                                 _isLoading.value = true
                                                 _error.value = null
 
@@ -76,6 +89,16 @@ package com.example.gumzo.viewmodel
                                         }
 
                                         fun signOut() {
+                                            // Cancel the Firestore listener before signing out
+                                            chatRoomsJob?.cancel()
+                                            chatRoomsJob = null
+                                            
+                                            // Clear the state
+                                            _chatRooms.value = emptyList()
+                                            _error.value = null
+                                            _isLoading.value = false
+                                            
+                                            // Sign out from Firebase
                                             auth.signOut()
                                         }
                                     }

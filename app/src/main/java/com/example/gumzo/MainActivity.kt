@@ -80,6 +80,7 @@ package com.example.gumzo
                             },
                             onSignOut = {
                                 chatListViewModel.signOut()
+                                // Use navigate with proper popUpTo that clears everything
                                 navController.navigate("login") {
                                     popUpTo(0) { inclusive = true }
                                 }
