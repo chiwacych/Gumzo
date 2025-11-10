@@ -1,0 +1,7 @@
+# Cloudinary Configuration
+# Copy this file to cloudinary.properties and fill in your actual credentials
+# DO NOT commit cloudinary.properties to version control!
+
+CLOUDINARY_CLOUD_NAME=your_cloud_name_here
+CLOUDINARY_API_KEY=your_api_key_here
+CLOUDINARY_API_SECRET=your_api_secret_here

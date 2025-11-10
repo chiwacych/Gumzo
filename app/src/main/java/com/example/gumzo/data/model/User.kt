@@ -6,5 +6,7 @@ data class User(
     val displayName: String = "",
     val photoUrl: String = "",
     val isOnline: Boolean = false,
+    val profilePictureUrl: String = "",
+    val createdAt: Long = System.currentTimeMillis(),
     val lastSeen: Long = System.currentTimeMillis()
 )

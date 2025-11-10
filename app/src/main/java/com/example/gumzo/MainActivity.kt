@@ -1,33 +1,40 @@
 package com.example.gumzo
 
-            import android.os.Bundle
-            import androidx.activity.ComponentActivity
-            import androidx.activity.compose.setContent
-            import androidx.activity.enableEdgeToEdge
-            import androidx.compose.foundation.layout.fillMaxSize
-            import androidx.compose.material3.MaterialTheme
-            import androidx.compose.material3.Surface
-            import androidx.compose.runtime.Composable
-            import androidx.compose.ui.Modifier
-            import androidx.lifecycle.viewmodel.compose.viewModel
-            import androidx.navigation.NavType
-            import androidx.navigation.compose.NavHost
-            import androidx.navigation.compose.composable
-            import androidx.navigation.compose.rememberNavController
-            import androidx.navigation.navArgument
-            import com.example.gumzo.ui.auth.LoginScreen
-            import com.example.gumzo.ui.auth.RegisterScreen
-            import com.example.gumzo.ui.chat.ChatListScreen
-            import com.example.gumzo.ui.chat.ChatRoomScreen
-            import com.example.gumzo.ui.theme.GumzoTheme
-            import com.example.gumzo.viewmodel.AuthViewModel
-            import com.example.gumzo.viewmodel.ChatListViewModel
-            import com.example.gumzo.viewmodel.ChatRoomViewModel
+import android.os.Bundle
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavType
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
+import com.example.gumzo.data.config.CloudinaryConfig
+import com.example.gumzo.ui.auth.LoginScreen
+import com.example.gumzo.ui.auth.RegisterScreen
+import com.example.gumzo.ui.chat.ChatListScreen
+import com.example.gumzo.ui.chat.ChatRoomScreen
+import com.example.gumzo.ui.theme.GumzoTheme
+import com.example.gumzo.viewmodel.AuthViewModel
+import com.example.gumzo.viewmodel.ChatListViewModel
+import com.example.gumzo.viewmodel.ChatRoomViewModel
 
-            class MainActivity : ComponentActivity() {
-                override fun onCreate(savedInstanceState: Bundle?) {
-                    super.onCreate(savedInstanceState)
-                    enableEdgeToEdge()
+class MainActivity : ComponentActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        
+        // Initialize Cloudinary
+        CloudinaryConfig.initialize(this)
+        
+        enableEdgeToEdge()
                     setContent {
                         GumzoTheme {
                             Surface(
@@ -95,9 +102,14 @@ package com.example.gumzo
                             navArgument("chatRoomName") { type = NavType.StringType }
                         )
                     ) { backStackEntry ->
+                        val context = LocalContext.current
                         val chatRoomId = backStackEntry.arguments?.getString("chatRoomId") ?: return@composable
                         val chatRoomName = backStackEntry.arguments?.getString("chatRoomName") ?: "Chat Room"
-                        val chatRoomViewModel = ChatRoomViewModel(chatRoomId)
+                        val chatRoomViewModel = remember(chatRoomId) { 
+                            ChatRoomViewModel(chatRoomId).apply {
+                                initImageRepository(context)
+                            }
+                        }
                         ChatRoomScreen(
                             chatRoomId = chatRoomId,
                             chatRoomName = chatRoomName,

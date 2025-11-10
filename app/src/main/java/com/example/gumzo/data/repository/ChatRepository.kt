@@ -112,11 +112,13 @@ class ChatRepository {
             .add(message)
             .await()
 
+        val lastMessageText = if (message.type == com.example.gumzo.data.model.MessageType.IMAGE) "📷 Photo" else message.text
+        
         firestore.collection("chatRooms")
             .document(chatRoomId)
             .update(
                 mapOf(
-                    "lastMessage" to message.text,
+                    "lastMessage" to lastMessageText,
                     "lastMessageTime" to message.timestamp
                 )
             )
