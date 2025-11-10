@@ -19,6 +19,7 @@ package com.example.gumzo.data.repository
                 val user = userDoc.toObject(User::class.java) ?: User(
                     uid = firebaseUser.uid,
                     email = firebaseUser.email ?: "",
+                    profilePictureUrl = "",
                     displayName = firebaseUser.displayName ?: ""
                 )
 
@@ -37,7 +38,19 @@ package com.example.gumzo.data.repository
             }
         }
 
-        suspend fun signUp(email: String, password: String, displayName: String): Result<User> {
+    suspend fun updateProfilePicture(userId: String, imageUrl: String): Result<Boolean> {
+        return try {
+            firestore.collection("users")
+                .document(userId)
+                .update("profilePictureUrl", imageUrl)
+                .await()
+            Result.success(true)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun signUp(email: String, password: String, displayName: String): Result<User> {
             return try {
                 val result = auth.createUserWithEmailAndPassword(email, password).await()
                 val firebaseUser = result.user ?: return Result.failure(Exception("Failed to create user"))
@@ -52,6 +65,7 @@ package com.example.gumzo.data.repository
                     uid = firebaseUser.uid,
                     email = email,
                     displayName = displayName,
+                    profilePictureUrl = "",
                     isOnline = true
                 )
 

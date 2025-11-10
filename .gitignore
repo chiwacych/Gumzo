@@ -14,7 +14,11 @@
 .cxx
 local.properties
 
+# Cloudinary credentials - DO NOT COMMIT
+cloudinary.properties
+
 #Custom ignores
 report/
 FIRESTORE_RULES_UPDATE.md
 TYPING_INDICATOR_IMPLEMENTATION.md
+*.md

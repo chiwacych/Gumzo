@@ -5,6 +5,13 @@ plugins {
         id("kotlin-kapt")
     }
 
+    // Load Cloudinary properties
+    def cloudinaryPropertiesFile = rootProject.file("cloudinary.properties")
+    def cloudinaryProperties = new Properties()
+    if (cloudinaryPropertiesFile.exists()) {
+        cloudinaryProperties.load(new FileInputStream(cloudinaryPropertiesFile))
+    }
+
     android {
         namespace = "com.example.gumzo"
         compileSdk = 35
@@ -20,6 +27,11 @@ plugins {
             vectorDrawables {
                 useSupportLibrary = true
             }
+            
+            // Add Cloudinary credentials as BuildConfig fields
+            buildConfigField("String", "CLOUDINARY_CLOUD_NAME", "\"${cloudinaryProperties.getProperty('CLOUDINARY_CLOUD_NAME', '')}\"")
+            buildConfigField("String", "CLOUDINARY_API_KEY", "\"${cloudinaryProperties.getProperty('CLOUDINARY_API_KEY', '')}\"")
+            buildConfigField("String", "CLOUDINARY_API_SECRET", "\"${cloudinaryProperties.getProperty('CLOUDINARY_API_SECRET', '')}\"")
         }
 
         buildTypes {
@@ -43,6 +55,7 @@ plugins {
 
         buildFeatures {
             compose = true
+            buildConfig = true
         }
 
         composeOptions {
@@ -56,13 +69,12 @@ plugins {
         }
     }
 
-    dependencies {
-        // Core Android dependencies
-        implementation("androidx.core:core-ktx:1.15.0")
-        implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.7")
-        implementation("androidx.activity:activity-compose:1.9.3")
-
-        // Compose BOM
+dependencies {
+    // Core Android dependencies
+    implementation("androidx.core:core-ktx:1.15.0")
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.7")
+    implementation("androidx.activity:activity-compose:1.9.2")
+    implementation("androidx.activity:activity-ktx:1.9.2")        // Compose BOM
         implementation(platform("androidx.compose:compose-bom:2024.12.01"))
         implementation("androidx.compose.ui:ui")
         implementation("androidx.compose.ui:ui-graphics")
@@ -89,10 +101,13 @@ plugins {
         implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.9.0")
         implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.9.0")
 
-        // Coil for image loading
-        implementation("io.coil-kt:coil-compose:2.7.0")
+            // Coil for image loading
+    implementation("io.coil-kt:coil-compose:2.7.0")
 
-        // Testing
+    // Cloudinary SDK
+    implementation("com.cloudinary:cloudinary-android:3.0.2")
+
+    // Testing
         testImplementation("junit:junit:4.13.2")
         androidTestImplementation("androidx.test.ext:junit:1.2.1")
         androidTestImplementation("androidx.test.espresso:espresso-core:3.6.1")

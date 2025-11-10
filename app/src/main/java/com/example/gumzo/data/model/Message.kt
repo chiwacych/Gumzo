@@ -6,6 +6,7 @@ data class Message(
     val senderName: String = "",
     val text: String = "",
     val imageUrl: String = "",
+    val senderProfilePicture: String = "",
     val timestamp: Long = System.currentTimeMillis(),
     val type: MessageType = MessageType.TEXT
 )
